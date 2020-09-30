@@ -18,6 +18,7 @@ from .schema import *
 from .db import engine, Session
 from .models import Base, Event, Reminder
 from .utils import apply_schema, initialize_database, validate_events
+from .display import get_optimal_name_length
 
 
 DATE_FMT = "%Y-%m-%dT%H:%M:%S"
@@ -216,10 +217,14 @@ def _refresh(ctx, *args, **kwargs):
 
 @cli.command("show", short_help="Show all saved events.")
 @click.option(
-    "--id", "-i", help="Show event with a particular id.",
+    "--id",
+    "-i",
+    help="Show event with a particular id.",
 )
 @click.option(
-    "--kind", "-k", help="Show kind of event, conference or meetup.",
+    "--kind",
+    "-k",
+    help="Show kind of event, conference or meetup.",
 )
 @click.option(
     "--cfp",
@@ -324,10 +329,15 @@ def _show(ctx, *args, **kwargs):
         events_output = []
 
         rids = [r.id for r in session.query(Reminder).all()]
+        optimal_name_length = get_optimal_name_length(events)
         for event in events:
+            if len(event.name) <= optimal_name_length:
+                name_to_use = event.name
+            else:
+                name_to_use = event.name[:optimal_name_length]
             event_output = [
                 event.id,
-                event.name,
+                name_to_use,
                 event.url,
                 event.city,
                 event.state,
@@ -347,7 +357,6 @@ def _show(ctx, *args, **kwargs):
 
             events_output.append(event_output)
         session.close()
-
         formatted = tabular_output.format_output(
             events_output, header, format_name="ascii"
         )
