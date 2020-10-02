@@ -1,7 +1,7 @@
 import os
 
 window_width = int(os.popen("stty size", "r").read().split()[1])
-
+print (window_width)
 max_lengths = {
     "id": 2,
     "Name": 4,
@@ -19,7 +19,8 @@ def get_optimal_name_length(events):
     max_width_needed = sum(max_lengths.values())
     length_to_reduce = max_width_needed - window_width
     optimal_name_length = max_lengths["Name"] - length_to_reduce
-    return optimal_name_length
+    optimal_name_length_no_url = optimal_name_length + max_lengths["Website"]
+    return optimal_name_length, optimal_name_length_no_url
 
 def update_max_lengths(events):
     for event in events:
